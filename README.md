@@ -30,6 +30,12 @@ To learn more about Next.js, take a look at the following resources:
 You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
 
 ## ConfidentialFeedback
+## Project Details
+Project Demo URL : https://confidentialfeedback.online
+Github Repository URL : https://github.com/veer-H/Confidential-Feedback-new.git
+Google Drive URL : https://drive.google.com/file/d/1xHDkIKMxN3MU6p1ZTZsIeiO6wkXxlkly/view?usp=sharing
+
+
 ## Problem Statement
 In professional and personal environments, providing honest feedback can often be hindered by social barriers. People are hesitant to share their true thoughts for fear of offending others or facing repercussions. This lack of genuine feedback can stunt personal and professional growth.
 
