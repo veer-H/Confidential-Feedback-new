@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios, { AxiosError } from 'axios';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -8,7 +8,6 @@ import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { CardHeader, CardContent, Card } from '@/components/ui/card';
-import { useCompletion } from 'ai/react';
 import {
   Form,
   FormControl,
@@ -24,6 +23,7 @@ import { ApiResponse } from '@/types/ApiResponse';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { messageSchema } from '@/schemas/messageSchema';
+import { motion } from 'framer-motion';
 
 const specialChar = '||';
 
@@ -38,15 +38,9 @@ export default function SendMessage() {
   const params = useParams<{ username: string }>();
   const username = params.username;
 
-  const {
-    complete,
-    completion,
-    isLoading: isSuggestLoading,
-    error,
-  } = useCompletion({
-    api: '/api/suggest-messages',
-    initialCompletion: initialMessageString,
-  });
+  const [completion, setCompletion] = useState<string>(initialMessageString);
+  const [isSuggestLoading, setIsSuggestLoading] = useState<boolean>(false);
+  const [error, setError] = useState<Error | null>(null);
 
   const form = useForm<z.infer<typeof messageSchema>>({
     resolver: zodResolver(messageSchema),
@@ -78,7 +72,7 @@ export default function SendMessage() {
       toast({
         title: 'Error',
         description:
-          axiosError.response?.data.message ?? 'Failed to sent message',
+          axiosError.response?.data.message ?? 'Failed to send message',
         variant: 'destructive',
       });
     } finally {
@@ -87,93 +81,244 @@ export default function SendMessage() {
   };
 
   const fetchSuggestedMessages = async () => {
+    setIsSuggestLoading(true);
+    setError(null);
     try {
-      complete('');
-    } catch (error) {
-      console.error('Error fetching messages:', error);
-      // Handle error appropriately
+      const response = await axios.post('/api/suggest-messages', {
+        prompt: `Create a list of three open-ended and engaging questions formatted as a single string. Each question should be separated by '||'. These questions are for an anonymous social messaging platform, like Qooh.me, and should be suitable for a diverse audience. Avoid personal or sensitive topics, focusing instead on universal themes that encourage friendly interaction.`,
+      });
+
+      if (response.status === 200 && response.data) {
+        setCompletion(response.data);
+      }
+    } catch (err) {
+      setError(err as Error);
+      console.error('Error fetching messages:', err);
+    } finally {
+      setIsSuggestLoading(false);
     }
   };
 
-  return (
-    <div className="container mx-auto my-8 p-6 bg-white rounded max-w-4xl">
-      <h1 className="text-4xl font-bold mb-6 text-center">
-        Public Profile Link
-      </h1>
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <FormField
-            control={form.control}
-            name="content"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Send Anonymous Message to @{username}</FormLabel>
-                <FormControl>
-                  <Textarea
-                    placeholder="Write your anonymous message here"
-                    className="resize-none"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <div className="flex justify-center">
-            {isLoading ? (
-              <Button disabled>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Please wait
-              </Button>
-            ) : (
-              <Button type="submit" disabled={isLoading || !messageContent}>
-                Send It
-              </Button>
-            )}
-          </div>
-        </form>
-      </Form>
+  useEffect(() => {
+    fetchSuggestedMessages();
+  }, []);
 
-      <div className="space-y-4 my-8">
-        <div className="space-y-2">
-          <Button
-            onClick={fetchSuggestedMessages}
-            className="my-4"
-            disabled={isSuggestLoading}
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.6,
+        ease: "easeOut",
+        when: "beforeChildren",
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 10 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.5 }
+    }
+  };
+
+  const buttonHover = {
+    scale: 1.02,
+    boxShadow: "0 10px 20px -5px rgba(59, 130, 246, 0.4)",
+    transition: { duration: 0.3 }
+  };
+
+  const buttonTap = {
+    scale: 0.98,
+    boxShadow: "0 5px 10px -3px rgba(59, 130, 246, 0.4)"
+  };
+
+  const messageHover = {
+    scale: 1.01,
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    transition: { duration: 0.2 }
+  };
+
+  return (
+    <div className="flex justify-center items-start md:items-center min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 p-4 pt-8 md:pt-4">
+      <motion.div
+        initial="hidden"
+        animate="visible"
+        variants={containerVariants}
+        className="w-full max-w-2xl p-4 md:p-8 space-y-6 backdrop-blur-lg bg-white/5 rounded-2xl border border-white/10 shadow-2xl"
+        style={{
+          boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
+          transformStyle: "preserve-3d"
+        }}
+      >
+        <motion.h1 
+          variants={itemVariants}
+          className="text-2xl md:text-3xl font-bold text-center text-white mb-4 md:mb-6"
+        >
+          Send Anonymous Message
+        </motion.h1>
+
+        <motion.p 
+          variants={itemVariants}
+          className="text-center text-gray-300 text-sm md:text-base"
+        >
+          Share your thoughts with @{username} without revealing your identity
+        </motion.p>
+
+        <Form {...form}>
+          <motion.form 
+            onSubmit={form.handleSubmit(onSubmit)} 
+            className="space-y-4 md:space-y-6"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
           >
-            Suggest Messages
-          </Button>
-          <p>Click on any message below to select it.</p>
-        </div>
-        <Card>
-          <CardHeader>
-            <h3 className="text-xl font-semibold">Messages</h3>
-          </CardHeader>
-          <CardContent className="flex flex-col space-y-4">
-            {error ? (
-              <p className="text-red-500">{error.message}</p>
-            ) : (
-              parseStringMessages(completion).map((message, index) => (
-                <Button
-                  key={index}
-                  variant="outline"
-                  className="mb-2"
-                  onClick={() => handleMessageClick(message)}
+            <motion.div variants={itemVariants}>
+              <FormField
+                control={form.control}
+                name="content"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-gray-300 text-sm md:text-base">
+                      Your Message
+                    </FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Write your anonymous message here"
+                        className="resize-none bg-white/10 border-gray-600 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-lg min-h-[120px]"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage className="text-rose-400 text-xs md:text-sm" />
+                  </FormItem>
+                )}
+              />
+            </motion.div>
+
+            <motion.div 
+              className="flex justify-center"
+              variants={itemVariants}
+            >
+              {isLoading ? (
+                <Button 
+                  disabled 
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white"
                 >
-                  {message}
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Sending...
                 </Button>
-              ))
-            )}
-          </CardContent>
-        </Card>
-      </div>
-      <Separator className="my-6" />
-      <div className="text-center">
-        <div className="mb-4">Get Your Message Board</div>
-        <Link href={'/sign-up'}>
-          <Button>Create Your Account</Button>
-        </Link>
-      </div>
+              ) : (
+                <motion.div
+                  whileHover={buttonHover}
+                  whileTap={buttonTap}
+                  className="w-full"
+                >
+                  <Button 
+                    type="submit" 
+                    disabled={isLoading || !messageContent}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    Send Anonymously
+                  </Button>
+                </motion.div>
+              )}
+            </motion.div>
+          </motion.form>
+        </Form>
+
+        <motion.div 
+          className="space-y-4 my-6 md:my-8"
+          variants={containerVariants}
+        >
+          <motion.div 
+            className="space-y-2"
+            variants={itemVariants}
+          >
+            <motion.div
+              whileHover={buttonHover}
+              whileTap={buttonTap}
+              className="w-full"
+            >
+              <Button
+                onClick={fetchSuggestedMessages}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                disabled={isSuggestLoading}
+                
+              >
+                {isSuggestLoading ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : null}
+                Suggest Messages
+              </Button>
+            </motion.div>
+            <p className="text-gray-400 text-xs md:text-sm">Click on any message below to select it</p>
+          </motion.div>
+
+          <motion.div variants={itemVariants}>
+            <Card className="bg-white/5 border-white/10 shadow-lg">
+              <CardHeader className="p-4 md:p-6">
+                <h3 className="text-lg md:text-xl font-semibold text-white">Message Suggestions</h3>
+              </CardHeader>
+              <CardContent className="flex flex-col space-y-3 p-4 md:p-6 md:space-y-4">
+                {error ? (
+                  <p className="text-rose-400 text-sm md:text-base">{error.message}</p>
+                ) : (
+                  parseStringMessages(completion).map((message, index) => (
+                    <motion.div
+                      key={index}
+                      whileHover={messageHover}
+                      whileTap={{ scale: 0.98 }}
+                      className="w-full"
+                    >
+                      <Button
+                        variant="outline"
+                        className="w-full text-left justify-start bg-white/5 text-white border-white/10 hover:bg-white/10 hover:text-white text-xs md:text-sm py-2 px-3 md:py-2 md:px-4"
+                        onClick={() => handleMessageClick(message)}
+                      >
+                        {message}
+                      </Button>
+                    </motion.div>
+                  ))
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>
+        </motion.div>
+
+        <motion.div 
+          variants={itemVariants}
+        >
+          <Separator className="my-4 md:my-6 bg-white/20" />
+        </motion.div>
+
+        <motion.div 
+          className="text-center space-y-4"
+          variants={containerVariants}
+        >
+          <motion.p 
+            variants={itemVariants}
+            className="text-gray-300 text-sm md:text-base"
+          >
+            Want to receive anonymous messages?
+          </motion.p>
+          <Link href={'/sign-up'} passHref>
+            <motion.div
+              whileHover={buttonHover}
+              whileTap={buttonTap}
+              className="w-full"
+            >
+              <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white">
+                Create Your Own Message Board
+              </Button>
+            </motion.div>
+          </Link>
+        </motion.div>
+      </motion.div>
     </div>
   );
 }

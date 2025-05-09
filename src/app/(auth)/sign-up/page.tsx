@@ -7,7 +7,7 @@ import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useDebounce } from 'usehooks-ts';
 import * as z from 'zod';
-
+import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -46,7 +46,7 @@ export default function SignUpForm() {
     const checkUsernameUnique = async () => {
       if (debouncedUsername) {
         setIsCheckingUsername(true);
-        setUsernameMessage(''); // Reset message
+        setUsernameMessage('');
         try {
           const response = await axios.get<ApiResponse>(
             `/api/check-username-unique?username=${debouncedUsername}`
@@ -76,14 +76,10 @@ export default function SignUpForm() {
       });
 
       router.replace(`/verify/${username}`);
-
       setIsSubmitting(false);
     } catch (error) {
       console.error('Error during sign-up:', error);
-
       const axiosError = error as AxiosError<ApiResponse>;
-
-      // Default error message
       let errorMessage = axiosError.response?.data.message;
       ('There was a problem with your sign-up. Please try again.');
 
@@ -92,97 +88,192 @@ export default function SignUpForm() {
         description: errorMessage,
         variant: 'destructive',
       });
-
       setIsSubmitting(false);
     }
   };
 
-  return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-800">
-      <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow-md">
-        <div className="text-center">
-          <h1 className="text-4xl font-extrabold tracking-tight lg:text-4xl mb-6">
-            Join Confidential Feedback
-          </h1>
-          <p className="mb-4">Sign up to start your anonymous adventure</p>
-        </div>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <FormField
-              name="username"
-              control={form.control}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Username</FormLabel>
-                  <Input
-                    {...field}
-                    onChange={(e) => {
-                      field.onChange(e);
-                      setUsername(e.target.value);
-                    }}
-                  />
-                  {isCheckingUsername && <Loader2 className="animate-spin" />}
-                  {!isCheckingUsername && usernameMessage && (
-                    <p
-                      className={`text-sm ${
-                        usernameMessage === 'Username is unique'
-                          ? 'text-green-500'
-                          : 'text-red-500'
-                      }`}
-                    >
-                      {usernameMessage}
-                    </p>
-                  )}
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              name="email"
-              control={form.control}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email</FormLabel>
-                  <Input {...field} name="email" />
-                  <p className='text-muted text-gray-400 text-sm'>We will send you a verification code</p>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+  const containerVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.6,
+        ease: "easeOut",
+        when: "beforeChildren",
+        staggerChildren: 0.1
+      }
+    }
+  };
 
-            <FormField
-              name="password"
-              control={form.control}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Password</FormLabel>
-                  <Input type="password" {...field} name="password" />
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <Button type="submit" className='w-full' disabled={isSubmitting}>
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Please wait
-                </>
-              ) : (
-                'Sign Up'
-              )}
-            </Button>
-          </form>
+  const itemVariants = {
+    hidden: { opacity: 0, y: 10 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.5 }
+    }
+  };
+
+  const buttonHover = {
+    scale: 1.02,
+    boxShadow: "0 10px 20px -5px rgba(59, 130, 246, 0.4)",
+    transition: { duration: 0.3 }
+  };
+
+  const buttonTap = {
+    scale: 0.98,
+    boxShadow: "0 5px 10px -3px rgba(59, 130, 246, 0.4)"
+  };
+
+  return (
+    <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-gray-900 to-gray-800">
+      <motion.div
+        initial="hidden"
+        animate="visible"
+        variants={containerVariants}
+        className="w-full max-w-md p-8 space-y-6 backdrop-blur-lg bg-white/5 rounded-2xl border border-white/10 shadow-2xl"
+        style={{
+          boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
+          transformStyle: "preserve-3d"
+        }}
+      >
+        <motion.div variants={itemVariants} className="text-center">
+          <h1 className="text-3xl font-bold text-white tracking-tight mb-2">
+            Join <span className="text-blue-400">Confidential Feedback</span>
+          </h1>
+          <p className="text-gray-300">Sign up to start your anonymous adventure</p>
+        </motion.div>
+
+        <Form {...form}>
+          <motion.form 
+            onSubmit={form.handleSubmit(onSubmit)} 
+            className="space-y-5"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+          >
+            <motion.div variants={itemVariants}>
+              <FormField
+                name="username"
+                control={form.control}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-gray-300">Username</FormLabel>
+                    <div className="relative">
+                      <Input
+                        {...field}
+                        className="bg-white/10 border-gray-600 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-lg"
+                        onChange={(e) => {
+                          field.onChange(e);
+                          setUsername(e.target.value);
+                        }}
+                      />
+                      {isCheckingUsername && (
+                        <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 animate-spin text-gray-400" />
+                      )}
+                    </div>
+                    {!isCheckingUsername && usernameMessage && (
+                      <motion.p
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className={`text-sm mt-1 ${
+                          usernameMessage === 'Username is unique'
+                            ? 'text-emerald-400'
+                            : 'text-rose-400'
+                        }`}
+                      >
+                        {usernameMessage}
+                      </motion.p>
+                    )}
+                    <FormMessage className="text-rose-400" />
+                  </FormItem>
+                )}
+              />
+            </motion.div>
+
+            <motion.div variants={itemVariants}>
+              <FormField
+                name="email"
+                control={form.control}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-gray-300">Email</FormLabel>
+                    <Input 
+                      {...field} 
+                      name="email" 
+                      className="bg-white/10 border-gray-600 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-lg" 
+                    />
+                    <p className="text-gray-400 text-sm mt-1">
+                      We will send you a verification code
+                    </p>
+                    <FormMessage className="text-rose-400" />
+                  </FormItem>
+                )}
+              />
+            </motion.div>
+
+            <motion.div variants={itemVariants}>
+              <FormField
+                name="password"
+                control={form.control}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-gray-300">Password</FormLabel>
+                    <Input 
+                      type="password" 
+                      {...field} 
+                      name="password" 
+                      className="bg-white/10 border-gray-600 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-lg" 
+                    />
+                    <FormMessage className="text-rose-400" />
+                  </FormItem>
+                )}
+              />
+            </motion.div>
+
+            <motion.div variants={itemVariants}>
+              <motion.div
+                whileHover={buttonHover}
+                whileTap={buttonTap}
+              >
+                <Button 
+                  type="submit" 
+                  className="w-full bg-slate-100 hover:bg-slate-100 text-black font-medium py-2 px-4 rounded-lg transition-all duration-200 shadow-lg"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Please wait
+                    </>
+                  ) : (
+                    'Sign Up'
+                  )}
+                </Button>
+              </motion.div>
+            </motion.div>
+          </motion.form>
         </Form>
-        <div className="text-center mt-4">
-          <p>
+
+        <motion.div 
+          variants={itemVariants}
+          className="text-center pt-2"
+        >
+          <p className="text-gray-400">
             Already a member?{' '}
-            <Link href="/sign-in" className="text-blue-600 hover:text-blue-800">
-              Sign in
+            <Link href="/sign-in" passHref>
+              <motion.a
+                className="text-blue-400 hover:text-blue-300 font-medium underline underline-offset-4"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                Sign in
+              </motion.a>
             </Link>
           </p>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     </div>
   );
 }
-
