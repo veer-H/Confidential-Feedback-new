@@ -202,7 +202,7 @@ export default function SignUpForm() {
                       className="bg-white/10 border-gray-600 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-lg" 
                     />
                     <p className="text-gray-400 text-sm mt-1">
-                      We'll send you a verification code
+                    We&apos;ll send you a verification code
                     </p>
                     <FormMessage className="text-rose-400" />
                   </FormItem>
