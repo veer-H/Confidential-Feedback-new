@@ -170,12 +170,13 @@ export default function SignInForm() {
                         type={showPassword ? 'text' : 'password'}
                         {...field}
                         autoComplete="current-password"
-                        className="bg-white/10 border-gray-600 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-lg"
+                        className="bg-white/10 border-gray-600 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-lg pr-10"
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-300 transition-colors"
+                        aria-label={showPassword ? "Hide password" : "Show password"}
                       >
                         {showPassword ? (
                           <EyeOff size={18} />
@@ -196,8 +197,9 @@ export default function SignInForm() {
 
             <motion.div variants={itemVariants}>
               <motion.div
-                whileHover={buttonHover}
-                whileTap={buttonTap}
+                whileHover={!form.formState.isSubmitting ? buttonHover : {}}
+                whileTap={!form.formState.isSubmitting ? buttonTap : {}}
+                className="w-full"
               >
                 <Button
                   className="w-full bg-slate-100 hover:bg-slate-100 text-black font-medium py-2 px-4 rounded-lg transition-all duration-200 shadow-lg"
@@ -205,10 +207,10 @@ export default function SignInForm() {
                   disabled={form.formState.isSubmitting}
                 >
                   {form.formState.isSubmitting ? (
-                    <>
+                    <span className="flex items-center justify-center">
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Signing in...
-                    </>
+                    </span>
                   ) : (
                     'Sign In'
                   )}

@@ -80,8 +80,7 @@ export default function SignUpForm() {
     } catch (error) {
       console.error('Error during sign-up:', error);
       const axiosError = error as AxiosError<ApiResponse>;
-      let errorMessage = axiosError.response?.data.message;
-      ('There was a problem with your sign-up. Please try again.');
+      let errorMessage = axiosError.response?.data.message ?? 'There was a problem with your sign-up. Please try again.';
 
       toast({
         title: 'Sign Up Failed',
@@ -127,19 +126,18 @@ export default function SignUpForm() {
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-gray-900 to-gray-800">
+    <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 p-4">
       <motion.div
         initial="hidden"
         animate="visible"
         variants={containerVariants}
-        className="w-full max-w-md p-8 space-y-6 backdrop-blur-lg bg-white/5 rounded-2xl border border-white/10 shadow-2xl"
+        className="w-full max-w-md p-6 sm:p-8 space-y-6 backdrop-blur-lg bg-white/5 rounded-2xl border border-white/10 shadow-2xl"
         style={{
           boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
-          transformStyle: "preserve-3d"
         }}
       >
         <motion.div variants={itemVariants} className="text-center">
-          <h1 className="text-3xl font-bold text-white tracking-tight mb-2">
+          <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight mb-2">
             Join <span className="text-blue-400">Confidential Feedback</span>
           </h1>
           <p className="text-gray-300">Sign up to start your anonymous adventure</p>
@@ -201,11 +199,10 @@ export default function SignUpForm() {
                     <FormLabel className="text-gray-300">Email</FormLabel>
                     <Input 
                       {...field} 
-                      name="email" 
                       className="bg-white/10 border-gray-600 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-lg" 
                     />
                     <p className="text-gray-400 text-sm mt-1">
-                      We will send you a verification code
+                      We'll send you a verification code
                     </p>
                     <FormMessage className="text-rose-400" />
                   </FormItem>
@@ -223,7 +220,6 @@ export default function SignUpForm() {
                     <Input 
                       type="password" 
                       {...field} 
-                      name="password" 
                       className="bg-white/10 border-gray-600 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-lg" 
                     />
                     <FormMessage className="text-rose-400" />
@@ -234,8 +230,9 @@ export default function SignUpForm() {
 
             <motion.div variants={itemVariants}>
               <motion.div
-                whileHover={buttonHover}
-                whileTap={buttonTap}
+                whileHover={!isSubmitting ? buttonHover : {}}
+                whileTap={!isSubmitting ? buttonTap : {}}
+                className="w-full"
               >
                 <Button 
                   type="submit" 
@@ -243,10 +240,10 @@ export default function SignUpForm() {
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? (
-                    <>
+                    <span className="flex items-center justify-center">
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Please wait
-                    </>
+                      Signing up...
+                    </span>
                   ) : (
                     'Sign Up'
                   )}
