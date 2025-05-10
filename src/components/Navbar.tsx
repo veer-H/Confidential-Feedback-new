@@ -8,27 +8,34 @@ import { User } from 'next-auth';
 
 function Navbar() {
   const { data: session } = useSession();
-  const user : User = session?.user;
+  const user: User = session?.user;
 
   return (
-    <nav className="fixed top-0 w-full backdrop-blur-md bg-background/30 flex p-4 items-center justify-between border-b h-16 z-10">
-      <div className="container mx-auto flex flex-col md:flex-row justify-between items-center">
-        <a href="#" className="text-xl font-bold mb-4 md:mb-0">
-        Confidential Feedback
+    <nav className="fixed top-0 w-full backdrop-blur-md bg-background/30 flex items-center justify-between border-b h-16 z-50 px-4 safe-area-top">
+      <div className="flex items-center justify-between w-full max-w-6xl mx-auto">
+        <a href="#" className="text-xl font-bold">
+          Confidential Feedback
         </a>
         
         {session ? (
-          <>
-            <span className="mr-4">
+          <div className="flex items-center gap-4">
+            <span className="hidden sm:inline">
               Welcome, {user.username || user.email}
             </span>
-            <Button onClick={() => signOut()} className="w-full md:w-auto bg-slate-100 text-black" variant='outline'>
+            <Button 
+              onClick={() => signOut()} 
+              className="bg-slate-100 text-black" 
+              variant='outline'
+              size="sm"
+            >
               Logout
             </Button>
-          </>
+          </div>
         ) : (
           <Link href="/sign-in">
-            <Button className="w-full md:w-auto bg-slate-100 text-black" variant={'outline'}>Login</Button>
+            <Button className="bg-slate-100 text-black" variant={'outline'} size="sm">
+              Login
+            </Button>
           </Link>
         )}
       </div>
